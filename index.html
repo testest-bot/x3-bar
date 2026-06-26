@@ -101,6 +101,12 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);min-height:100
 .bp .lb{font-size:9px;color:var(--mu)}
 .bp.on{border-color:var(--gold);background:rgba(232,200,74,.12);color:var(--gold)}
 .bp.on .lb{color:var(--g2)}
+.bp.on .dtog{display:flex}
+.dtog{display:none;margin-top:4px;border-radius:5px;overflow:hidden;border:1px solid rgba(232,200,74,.4)}
+.dtog button{font-size:9px;font-weight:700;padding:2px 6px;border:none;background:var(--s3);color:var(--g2);cursor:pointer;min-height:22px}
+.dtog button.sel{background:var(--gold);color:#000}
+.bp{position:relative}
+
 
 .rpc{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
 .rpl{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--mu);font-weight:700;text-align:center;margin-bottom:4px}
@@ -253,7 +259,7 @@ const SEQ=["heavy-upper","heavy-lower","dynamic-upper","dynamic-lower"];
 const LABEL={"heavy-upper":"Heavy Upper","heavy-lower":"Heavy Lower","dynamic-upper":"Dynamic Upper","dynamic-lower":"Dynamic Lower"};
 const HU={1:"Chest Press",2:"Overhead Press",3:"Reverse Grip Chest Press",4:"Chest Press",5:"Overhead Press",6:"Reverse Grip Chest Press",7:"Chest Press",8:"Overhead Press"};
 const HL={1:"Front Squat",2:"Deadlift",3:"Zercher Squat",4:"Front Squat",5:"Deadlift",6:"Zercher Squat",7:"Front Squat",8:"Deadlift"};
-const BANDS=[{n:"White",lb:"10–50"},{n:"Lt Gray",lb:"25–80"},{n:"Dk Gray",lb:"50–120"},{n:"Black",lb:"60–150"},{n:"Orange",lb:"110–300"}];
+const BANDS=[{n:"Orange",lb:"<White"},{n:"White",lb:"10–50"},{n:"Lt Gray",lb:"25–80"},{n:"Dk Gray",lb:"50–120"},{n:"Black",lb:"60–150"}];
 const tod=()=>new Date().toISOString().split("T")[0];
 const gML=(d,w)=>d==="heavy-upper"?HU[w]:d==="heavy-lower"?HL[w]:"";
 const KEY="x3_foundations_data";
@@ -389,17 +395,44 @@ function buildExercises(day,ml){
 
 function $(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
 
-function bandHTML(idPrefix,prevBand){
-  return `<div class="cl">Band${prevBand?' · last: '+prevBand:''}</div><div class="bands" id="${idPrefix}-bands">`+
-    BANDS.map((b,i)=>`<button class="bp${prevBand===b.n?' on':''}" data-b="${b.n}" onclick="pickBand('${idPrefix}',${i})">${b.n}<span class="lb">${b.lb}lb</span></button>`).join("")+`</div>`;
+function bandStr(arr){
+  if(!arr||!arr.length)return null;
+  return arr.map(x=>x.band+(x.doubled?" (dbl)":"")).join(" + ");
 }
-function pickBand(prefix,idx){
+function bandHTML(idPrefix,prevArr){
+  const prevStr=bandStr(prevArr);
+  const sel={};if(prevArr)prevArr.forEach(x=>sel[x.band]=x.doubled?"d":"s");
+  return `<div class="cl">Band${prevStr?' · last: '+prevStr:''}</div><div class="bands" id="${idPrefix}-bands">`+
+    BANDS.map((b,i)=>{
+      const on=sel[b.n]!=null;const dbl=sel[b.n]==="d";
+      return `<button class="bp${on?' on':''}" data-b="${b.n}" onclick="pickBand(event,'${idPrefix}',${i})">${b.n}<span class="lb">${b.lb}lb</span>`+
+        `<span class="dtog"><button class="${!dbl?'sel':''}" onclick="setDbl(event,'${idPrefix}',${i},false)">S</button><button class="${dbl?'sel':''}" onclick="setDbl(event,'${idPrefix}',${i},true)">D</button></span>`+
+      `</button>`;
+    }).join("")+`</div>`;
+}
+function pickBand(ev,prefix,idx){
+  // ignore clicks that originate on the S/D toggle
+  if(ev.target.closest(".dtog"))return;
   const el=document.getElementById(prefix+"-bands");
-  el.querySelectorAll(".bp").forEach((b,i)=>b.classList.toggle("on",i===idx));
+  el.querySelectorAll(".bp")[idx].classList.toggle("on");
+}
+function setDbl(ev,prefix,idx,doubled){
+  ev.stopPropagation();
+  const el=document.getElementById(prefix+"-bands");
+  const pill=el.querySelectorAll(".bp")[idx];
+  pill.classList.add("on"); // selecting a mode implies the band is on
+  const tog=pill.querySelector(".dtog");
+  tog.children[0].classList.toggle("sel",!doubled);
+  tog.children[1].classList.toggle("sel",doubled);
+  pill.dataset.dbl=doubled?"1":"0";
 }
 function getBand(prefix){
   const el=document.getElementById(prefix+"-bands");if(!el)return null;
-  const on=el.querySelector(".bp.on");return on?on.dataset.b:null;
+  const arr=[];
+  el.querySelectorAll(".bp.on").forEach(p=>{
+    arr.push({band:p.dataset.b,doubled:p.dataset.dbl==="1"});
+  });
+  return arr.length?arr:null;
 }
 
 function lastBanner(txt){return txt?`<div class="lt"><span class="ico">🎯</span>Beat last: ${txt}</div>`:"";}
@@ -427,9 +460,9 @@ function buildCard(spec,name,prev){
   // build last-time target string
   let lastTxt="";
   if(prev){
-    if(T==="pb"||T==="drop"){if(prev.full)lastTxt=`${prev.full}${prev.partial?"+"+prev.partial+"p":""} reps on ${prev.band||"?"}`;}
-    else if(T==="rp"){const t=(parseInt(prev.s1)||0)+(parseInt(prev.s2)||0)+(parseInt(prev.s3)||0);if(t)lastTxt=`${t} total on ${prev.band||"?"}`;}
-    else if(T==="ss"&&prev.sets){const tot=prev.sets.reduce((a,s)=>a+(parseInt(s.full)||0),0);if(tot)lastTxt=`${prev.sets.map(s=>s.full||0).join("/")} on ${prev.band||"?"}`;}
+    if(T==="pb"||T==="drop"){if(prev.full)lastTxt=`${prev.full}${prev.partial?"+"+prev.partial+"p":""} reps on ${bandStr(prev.band)||"?"}`;}
+    else if(T==="rp"){const t=(parseInt(prev.s1)||0)+(parseInt(prev.s2)||0)+(parseInt(prev.s3)||0);if(t)lastTxt=`${t} total on ${bandStr(prev.band)||"?"}`;}
+    else if(T==="ss"&&prev.sets){const tot=prev.sets.reduce((a,s)=>a+(parseInt(s.full)||0),0);if(tot)lastTxt=`${prev.sets.map(s=>s.full||0).join("/")} on ${bandStr(prev.band)||"?"}`;}
   }
 
   if(T==="pb"||T==="drop"){
@@ -570,13 +603,13 @@ function summarize(s){
     const e=s.exercises[spec.id];if(!e)return;
     const nm=spec.dyn?s.mainLift:spec.name;
     let v="";
-    if(spec.type==="pb"||spec.type==="drop"){if(e.full)v=`${e.full}${e.partial?"+"+e.partial+"p":""} @ ${e.band||"?"}`;}
-    else if(spec.type==="rp"){const t=(parseInt(e.s1)||0)+(parseInt(e.s2)||0)+(parseInt(e.s3)||0);if(t)v=`${t} total @ ${e.band||"?"}`;}
-    else if(spec.type==="ss"&&e.sets){const x=e.sets.map(z=>z.full||0).join("/");if(x.replace(/0|\//g,""))v=`${x} @ ${e.band||"?"}`;}
-    else if((spec.type==="dyn"||spec.type==="timed")&&e.sets){const done=e.sets.filter(Boolean).length;if(done)v=`${done} sets done${e.band?" @ "+e.band:""}`;}
-    else if(spec.type==="bilat"&&e.sets){const x=e.sets.map(z=>`${z.lf||0}/${z.rf||0}`).join(", ");if(x.replace(/0|\/|, /g,""))v=`${x} @ ${e.band||"?"}`;}
-    else if(spec.type==="bi2"&&e.sets){const x=e.sets.map(z=>`${z.l||0}/${z.r||0}`).join(", ");if(x.replace(/0|\/|, /g,""))v=`${x}${e.band?" @ "+e.band:""}`;}
-    else if((spec.type==="isod"||spec.type==="isos")&&e.holds){const done=e.holds.filter(Boolean).length;if(done)v=`${done} holds${e.band?" @ "+e.band:""}`;}
+    if(spec.type==="pb"||spec.type==="drop"){if(e.full)v=`${e.full}${e.partial?"+"+e.partial+"p":""} @ ${bandStr(e.band)||"?"}`;}
+    else if(spec.type==="rp"){const t=(parseInt(e.s1)||0)+(parseInt(e.s2)||0)+(parseInt(e.s3)||0);if(t)v=`${t} total @ ${bandStr(e.band)||"?"}`;}
+    else if(spec.type==="ss"&&e.sets){const x=e.sets.map(z=>z.full||0).join("/");if(x.replace(/0|\//g,""))v=`${x} @ ${bandStr(e.band)||"?"}`;}
+    else if((spec.type==="dyn"||spec.type==="timed")&&e.sets){const done=e.sets.filter(Boolean).length;if(done)v=`${done} sets done${bandStr(e.band)?" @ "+bandStr(e.band):""}`;}
+    else if(spec.type==="bilat"&&e.sets){const x=e.sets.map(z=>`${z.lf||0}/${z.rf||0}`).join(", ");if(x.replace(/0|\/|, /g,""))v=`${x} @ ${bandStr(e.band)||"?"}`;}
+    else if(spec.type==="bi2"&&e.sets){const x=e.sets.map(z=>`${z.l||0}/${z.r||0}`).join(", ");if(x.replace(/0|\/|, /g,""))v=`${x}${bandStr(e.band)?" @ "+bandStr(e.band):""}`;}
+    else if((spec.type==="isod"||spec.type==="isos")&&e.holds){const done=e.holds.filter(Boolean).length;if(done)v=`${done} holds${bandStr(e.band)?" @ "+bandStr(e.band):""}`;}
     if(v)lines.push(`<b>${nm}:</b> ${v}${e.note?" — "+e.note:""}`);
   });
   return lines.join("<br>");
