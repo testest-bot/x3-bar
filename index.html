@@ -101,11 +101,11 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);min-height:100
 .bp .lb{font-size:9px;color:var(--mu)}
 .bp.on{border-color:var(--gold);background:rgba(232,200,74,.12);color:var(--gold)}
 .bp.on .lb{color:var(--g2)}
-.bp.on .dtog{display:flex}
-.dtog{display:none;margin-top:4px;border-radius:5px;overflow:hidden;border:1px solid rgba(232,200,74,.4)}
-.dtog button{font-size:9px;font-weight:700;padding:2px 6px;border:none;background:var(--s3);color:var(--g2);cursor:pointer;min-height:22px}
-.dtog button.sel{background:var(--gold);color:#000}
-.bp{position:relative}
+.sdrow{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.sdlbl{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--dim);text-transform:uppercase}
+.sdtog{display:flex;border:1px solid var(--bd);border-radius:8px;overflow:hidden}
+.sdtog button{font-size:12px;font-weight:700;padding:8px 16px;border:none;background:var(--s2);color:var(--dim);cursor:pointer;min-height:40px}
+.sdtog button.sel{background:var(--gold);color:#000}
 
 
 .rpc{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
@@ -395,44 +395,47 @@ function buildExercises(day,ml){
 
 function $(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
 
-function bandStr(arr){
-  if(!arr||!arr.length)return null;
-  return arr.map(x=>x.band+(x.doubled?" (dbl)":"")).join(" + ");
+function bandStr(v){
+  // v = {bands:[...], doubled:bool}  (also tolerates legacy array form)
+  if(!v)return null;
+  if(Array.isArray(v)){ // legacy: [{band,doubled}]
+    if(!v.length)return null;
+    return v.map(x=>x.band+(x.doubled?" (dbl)":"")).join(" + ");
+  }
+  if(!v.bands||!v.bands.length)return null;
+  return v.bands.join(" + ")+(v.doubled?" (doubled)":"");
 }
-function bandHTML(idPrefix,prevArr){
-  const prevStr=bandStr(prevArr);
-  const sel={};if(prevArr)prevArr.forEach(x=>sel[x.band]=x.doubled?"d":"s");
-  return `<div class="cl">Band${prevStr?' · last: '+prevStr:''}</div><div class="bands" id="${idPrefix}-bands">`+
-    BANDS.map((b,i)=>{
-      const on=sel[b.n]!=null;const dbl=sel[b.n]==="d";
-      return `<button class="bp${on?' on':''}" data-b="${b.n}" onclick="pickBand(event,'${idPrefix}',${i})">${b.n}<span class="lb">${b.lb}lb</span>`+
-        `<span class="dtog"><button class="${!dbl?'sel':''}" onclick="setDbl(event,'${idPrefix}',${i},false)">S</button><button class="${dbl?'sel':''}" onclick="setDbl(event,'${idPrefix}',${i},true)">D</button></span>`+
-      `</button>`;
-    }).join("")+`</div>`;
+function bandHTML(idPrefix,prevV){
+  const prevStr=bandStr(prevV);
+  // normalize prev into {bands, doubled}
+  let pb=[],pd=false;
+  if(prevV){if(Array.isArray(prevV)){pb=prevV.map(x=>x.band);pd=prevV.some(x=>x.doubled);}else{pb=prevV.bands||[];pd=!!prevV.doubled;}}
+  const sel={};pb.forEach(b=>sel[b]=true);
+  return `<div class="cl">Bands${prevStr?' · last: '+prevStr:''}</div><div class="bands" id="${idPrefix}-bands">`+
+    BANDS.map((b,i)=>`<button class="bp${sel[b.n]?' on':''}" data-b="${b.n}" onclick="pickBand('${idPrefix}',${i})">${b.n}<span class="lb">${b.lb}lb</span></button>`).join("")+`</div>`+
+    `<div class="sdrow"><span class="sdlbl">Config</span><div class="sdtog" id="${idPrefix}-sd">`+
+    `<button class="${!pd?'sel':''}" data-d="0" onclick="setSD('${idPrefix}',false)">Single</button>`+
+    `<button class="${pd?'sel':''}" data-d="1" onclick="setSD('${idPrefix}',true)">Doubled</button>`+
+    `</div></div>`;
 }
-function pickBand(ev,prefix,idx){
-  // ignore clicks that originate on the S/D toggle
-  if(ev.target.closest(".dtog"))return;
+function pickBand(prefix,idx){
   const el=document.getElementById(prefix+"-bands");
   el.querySelectorAll(".bp")[idx].classList.toggle("on");
 }
-function setDbl(ev,prefix,idx,doubled){
-  ev.stopPropagation();
-  const el=document.getElementById(prefix+"-bands");
-  const pill=el.querySelectorAll(".bp")[idx];
-  pill.classList.add("on"); // selecting a mode implies the band is on
-  const tog=pill.querySelector(".dtog");
+function setSD(prefix,doubled){
+  const tog=document.getElementById(prefix+"-sd");
   tog.children[0].classList.toggle("sel",!doubled);
   tog.children[1].classList.toggle("sel",doubled);
-  pill.dataset.dbl=doubled?"1":"0";
+  tog.dataset.d=doubled?"1":"0";
 }
 function getBand(prefix){
   const el=document.getElementById(prefix+"-bands");if(!el)return null;
-  const arr=[];
-  el.querySelectorAll(".bp.on").forEach(p=>{
-    arr.push({band:p.dataset.b,doubled:p.dataset.dbl==="1"});
-  });
-  return arr.length?arr:null;
+  const bands=[];
+  el.querySelectorAll(".bp.on").forEach(p=>bands.push(p.dataset.b));
+  if(!bands.length)return null;
+  const tog=document.getElementById(prefix+"-sd");
+  const doubled=tog?tog.dataset.d==="1":false;
+  return {bands,doubled};
 }
 
 function lastBanner(txt){return txt?`<div class="lt"><span class="ico">🎯</span>Beat last: ${txt}</div>`:"";}
