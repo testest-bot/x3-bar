@@ -170,6 +170,48 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);min-height:100
 .toast{position:fixed;bottom:calc(var(--sb) + 24px);left:50%;transform:translateX(-50%);background:var(--green);color:#fff;font-size:14px;font-weight:700;padding:12px 24px;border-radius:24px;z-index:999;opacity:0;pointer-events:none;transition:opacity .2s;white-space:nowrap}
 .toast.show{opacity:1}
 
+
+.timer{display:flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+.timer-btn{flex-shrink:0;padding:10px 16px;border-radius:8px;border:none;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;min-height:44px}
+.timer-start{background:var(--green);color:#fff}
+.timer-stop{background:var(--red);color:#fff}
+.timer-disp{font-size:20px;font-weight:800;font-family:var(--mono);color:var(--gold)}
+.timer-lbl{font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+
+.aw{padding:16px}
+.asel{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.asel select{-webkit-appearance:none}
+.ametric{font-size:12px;color:var(--dim);margin-bottom:12px;text-align:center}
+.ametric b{color:var(--gold)}
+.achart-wrap{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px 8px 8px;margin-bottom:16px}
+.aempty{text-align:center;color:var(--mu);padding:40px 20px;font-size:14px}
+.atable{width:100%;border-collapse:collapse;font-size:12px}
+.atable th{text-align:left;color:var(--mu);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:10px;padding:6px 8px;border-bottom:1px solid var(--bd)}
+.atable td{padding:8px;border-bottom:1px solid var(--bd);color:var(--dim)}
+.atable td.v{color:var(--tx);font-weight:700;font-family:var(--mono)}
+.atrend{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:6px}
+.up{background:rgba(76,175,80,.15);color:var(--green)}
+.down{background:rgba(224,90,43,.15);color:var(--red)}
+.flat{background:rgba(136,136,136,.15);color:var(--dim)}
+
+.amode{display:flex;gap:8px;margin-bottom:16px}
+.amode-btn{flex:1;padding:10px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--dim);font-size:13px;font-weight:700;cursor:pointer;min-height:44px}
+.amode-btn.on{background:var(--gold);color:#000;border-color:var(--gold)}
+.calstats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+.calstat{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:12px;text-align:center}
+.calstat .num{font-size:24px;font-weight:800;color:var(--gold);font-family:var(--mono)}
+.calstat .lab{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-top:2px}
+.calmonth{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+.calmonth-t{font-size:14px;font-weight:800;margin-bottom:10px}
+.caldow{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
+.caldow span{font-size:9px;color:var(--mu);text-align:center;font-weight:700}
+.calcells{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.calcell{aspect-ratio:1;border-radius:5px;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mu)}
+.calcell.has1{background:rgba(232,200,74,.35);color:#111;font-weight:700}
+.calcell.has2{background:var(--gold);color:#111;font-weight:800}
+.calcell.empty{background:transparent}
+.callegend{display:flex;gap:14px;justify-content:center;font-size:11px;color:var(--dim);flex-wrap:wrap}
+.callegend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:middle;margin-right:4px}
 /* pin */
 .pin{background:var(--bg);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center}
 </style>
@@ -209,18 +251,31 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);min-height:100
     <div><div class="wt" id="w-title"></div><div class="ws" id="w-sub"></div></div>
   </div>
   <div class="wb">
+    <div class="timer">
+      <button class="timer-btn timer-start" id="tm-btn" onclick="toggleTimer()">Start</button>
+      <div><div class="timer-lbl" id="tm-lbl">Workout timer</div><div class="timer-disp" id="tm-disp">0:00</div></div>
+    </div>
     <div class="meta">
       <div class="mg">
         <div><div class="ml">Date</div><input type="date" class="mi" id="m-date"></div>
         <div><div class="ml">Readiness (1–10)</div><input type="number" inputmode="numeric" class="mi" id="m-ready" placeholder="8" min="1" max="10"></div>
       </div>
       <div class="bwr">
-        <div style="flex:1"><div class="ml">Bodyweight</div><input type="number" inputmode="decimal" class="mi" id="m-bw" placeholder="88" style="max-width:110px"></div>
+        <div style="flex:1"><div class="ml">Bodyweight</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="number" inputmode="decimal" class="mi" id="m-bw" placeholder="88" style="max-width:110px" oninput="updConv()">
+            <span id="bw-conv" style="font-size:14px;font-weight:700;color:var(--gold);font-family:var(--mono)"></span>
+          </div>
+        </div>
         <div class="ut"><button class="ub on" id="u-kg" onclick="setUnit('kg')">kg</button><button class="ub" id="u-lbs" onclick="setUnit('lbs')">lbs</button></div>
       </div>
     </div>
     <div id="ex-area"></div>
     <textarea class="snt" id="m-notes" placeholder="Session notes..."></textarea>
+    <div class="timer" style="margin-top:14px;margin-bottom:0">
+      <button class="timer-btn timer-start" id="tm-btn2" onclick="toggleTimer()">Start</button>
+      <div><div class="timer-lbl" id="tm-lbl2">Workout timer</div><div class="timer-disp" id="tm-disp2">0:00</div></div>
+    </div>
     <button class="save" onclick="saveSession()">Save Session</button>
   </div>
 </div>
@@ -230,9 +285,51 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);min-height:100
   <div class="tb" style="gap:8px"><button class="back" onclick="goHome()">‹</button><div class="tb-t" style="flex:1">History</div></div>
   <div class="hw">
     <div id="hist"></div>
+    <button class="io-btn" onclick="showAnalytics()" style="color:var(--gold);border-color:var(--g2)">📈 View progress charts</button>
     <button class="io-btn" onclick="exportJSON()">Export backup (JSON)</button>
     <button class="io-btn" onclick="document.getElementById('imp').click()">Import backup</button>
     <input type="file" id="imp" accept="application/json" style="display:none" onchange="importJSON(event)">
+  </div>
+</div>
+
+<!-- ANALYTICS -->
+<div class="screen" id="s-analytics">
+  <div class="tb" style="gap:8px"><button class="back" onclick="goHome()">‹</button><div class="tb-t" style="flex:1">Progress</div></div>
+  <div class="aw">
+    <div class="amode">
+      <button class="amode-btn on" id="am-ex" onclick="setAMode('ex')">Exercise progress</button>
+      <button class="amode-btn" id="am-body" onclick="setAMode('body')">Body &amp; session</button>
+    </div>
+    <div id="a-ex-panel">
+      <div class="asel">
+        <div><div class="ml">Day</div><select class="mi" id="a-day" onchange="onDayChange()"></select></div>
+        <div><div class="ml">Exercise</div><select class="mi" id="a-ex" onchange="renderChart()"></select></div>
+      </div>
+    </div>
+    <div id="a-body-panel" style="display:none">
+      <div><div class="ml">Metric</div><select class="mi" id="a-bmetric" onchange="renderBodyChart()">
+        <option value="bw">Bodyweight</option>
+        <option value="duration">Workout duration</option>
+        <option value="readiness">Readiness</option>
+      </select></div>
+    </div>
+    <div id="a-metric" class="ametric"></div>
+    <div id="a-chart"></div>
+    <div id="a-table"></div>
+  </div>
+</div>
+
+<!-- CALENDAR -->
+<div class="screen" id="s-calendar">
+  <div class="tb" style="gap:8px"><button class="back" onclick="goHome()">‹</button><div class="tb-t" style="flex:1">Consistency</div></div>
+  <div class="aw">
+    <div id="cal-stats" class="calstats"></div>
+    <div id="cal-grid"></div>
+    <div class="callegend">
+      <span><i style="background:var(--s2)"></i> No log</span>
+      <span><i style="background:rgba(232,200,74,.35)"></i> 1 session</span>
+      <span><i style="background:var(--gold)"></i> 2+ sessions</span>
+    </div>
   </div>
 </div>
 
@@ -247,6 +344,8 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);min-height:100
     <button class="mi2" onclick="jumpTo('dynamic-lower')">Dynamic Lower <span class="mbd">Speed work</span></button>
     <div class="msec">Other</div>
     <button class="mi2" onclick="closeMenu();showHistory()">Session history</button>
+    <button class="mi2" onclick="closeMenu();showAnalytics()">Progress charts</button>
+    <button class="mi2" onclick="closeMenu();showCalendar()">Consistency calendar</button>
     <button class="mcl" onclick="closeMenu()">Close</button>
   </div>
 </div>
@@ -372,6 +471,7 @@ function openWorkout(day,week){
   document.getElementById("m-date").value=tod();
   document.getElementById("m-notes").value="";
   document.getElementById("m-bw").value="";
+  const bwc=document.getElementById("bw-conv");if(bwc)bwc.textContent="";
   document.getElementById("m-ready").value="";
 
   // pull last session of this day for targets + band pre-fill
@@ -379,6 +479,7 @@ function openWorkout(day,week){
   lastEx=prev&&prev.exercises?prev.exercises:{};
 
   buildExercises(day,ml);
+  resetTimer();
   showScreen("workout");
 }
 
@@ -484,7 +585,8 @@ function buildCard(spec,name,prev){
   else if(T==="rp"){
     body=bandHTML(pfx,prev?prev.band:null)+
       `<div class="rpc">`+["s1","s2","s3"].map((k,i)=>`<div><div class="rpl">Set ${i+1}</div><input type="number" inputmode="numeric" class="si" id="${pfx}-${k}" oninput="rpCalc('${pfx}',${spec.minR},${spec.gradR})" placeholder="—"></div>`).join("")+`</div>`+
-      `<div class="rpb"><span class="rpbl">Total</span><span class="rpt" id="${pfx}-tot" style="color:var(--dim)">—</span></div>`+
+      `<div class="sr" style="grid-template-columns:1fr auto;margin-bottom:8px;align-items:center"><span class="rpl" style="text-align:left;margin:0">Set 3 partials (after failure)</span><input type="number" inputmode="numeric" class="si" id="${pfx}-s3p" placeholder="—" style="max-width:90px"></div>`+
+      `<div class="rpb"><span class="rpbl">Total full reps</span><span class="rpt" id="${pfx}-tot" style="color:var(--dim)">—</span></div>`+
       `<div class="gf" id="${pfx}-gf" style="display:none">🔼 ${spec.gradR}+ reps — graduate band next session</div>`;
   }
   else if(T==="dyn"){
@@ -499,8 +601,8 @@ function buildCard(spec,name,prev){
   }
   else if(T==="bi2"){
     let rows="";
-    for(let i=1;i<=spec.ns;i++)rows+=`<div class="sr" style="grid-template-columns:36px 1fr 1fr"><div class="sn">${i}</div><input type="number" inputmode="numeric" class="si" id="${pfx}-s${i}l" placeholder="Left"><input type="number" inputmode="numeric" class="si" id="${pfx}-s${i}r" placeholder="Right"></div>`;
-    body=bandHTML(pfx,prev?prev.band:null)+`<div class="colh" style="grid-template-columns:36px 1fr 1fr"><div></div><div class="colL">Left</div><div class="colL">Right</div></div>`+rows;
+    for(let i=1;i<=spec.ns;i++)rows+=`<div class="sr" style="grid-template-columns:32px 1fr 1fr 1fr 1fr"><div class="sn">${i}</div><input type="number" inputmode="numeric" class="si" id="${pfx}-s${i}l" placeholder="L"><input type="number" inputmode="numeric" class="si" id="${pfx}-s${i}lp" placeholder="L±"><input type="number" inputmode="numeric" class="si" id="${pfx}-s${i}r" placeholder="R"><input type="number" inputmode="numeric" class="si" id="${pfx}-s${i}rp" placeholder="R±"></div>`;
+    body=bandHTML(pfx,prev?prev.band:null)+`<div class="colh" style="grid-template-columns:32px 1fr 1fr 1fr 1fr"><div></div><div class="colL">Left</div><div class="colL">L±</div><div class="colL">Right</div><div class="colL">R±</div></div>`+rows;
   }
   else if(T==="isod"){
     let rows="";const pos=["Low 10s","Mid 10s","Top 10s"];
@@ -543,6 +645,15 @@ function setUnit(u){
   bwUnit=u;
   document.getElementById("u-kg").classList.toggle("on",u==="kg");
   document.getElementById("u-lbs").classList.toggle("on",u==="lbs");
+  updConv();
+}
+// Always show the lbs value beside the input (Shiv weighs in kg, thinks in lbs)
+function updConv(){
+  const el=document.getElementById("bw-conv");if(!el)return;
+  const v=parseFloat(document.getElementById("m-bw").value);
+  if(!v){el.textContent="";return;}
+  const lbs=bwUnit==="kg"?(v*2.20462):v;
+  el.textContent="= "+lbs.toFixed(1)+" lbs";
 }
 
 // ─── COLLECT EXERCISE DATA ───
@@ -554,10 +665,10 @@ function collectExercises(day){
     e.note=document.getElementById(pfx+"-note2")?.value||"";
     if(T==="pb"||T==="drop"){e.full=val(pfx+"-full");e.partial=val(pfx+"-part");if(T==="pb")e.exnote=val(pfx+"-note");}
     else if(T==="ss"){e.sets=[];for(let i=1;i<=spec.ns;i++)e.sets.push({full:val(pfx+`-s${i}f`),partial:val(pfx+`-s${i}p`)});}
-    else if(T==="rp"){e.s1=val(pfx+"-s1");e.s2=val(pfx+"-s2");e.s3=val(pfx+"-s3");}
+    else if(T==="rp"){e.s1=val(pfx+"-s1");e.s2=val(pfx+"-s2");e.s3=val(pfx+"-s3");e.s3p=val(pfx+"-s3p");}
     else if(T==="dyn"){e.sets=[];for(let i=0;i<9;i++)e.sets.push(document.getElementById(pfx+"-d"+i).classList.contains("done"));}
     else if(T==="bilat"){e.sets=[];for(let i=1;i<=spec.ns;i++)e.sets.push({lf:val(pfx+`-s${i}lf`),lp:val(pfx+`-s${i}lp`),rf:val(pfx+`-s${i}rf`),rp:val(pfx+`-s${i}rp`)});}
-    else if(T==="bi2"){e.sets=[];for(let i=1;i<=spec.ns;i++)e.sets.push({l:val(pfx+`-s${i}l`),r:val(pfx+`-s${i}r`)});}
+    else if(T==="bi2"){e.sets=[];for(let i=1;i<=spec.ns;i++)e.sets.push({l:val(pfx+`-s${i}l`),lp:val(pfx+`-s${i}lp`),r:val(pfx+`-s${i}r`),rp:val(pfx+`-s${i}rp`)});}
     else if(T==="isod"){e.holds=[];for(let i=0;i<9;i++)e.holds.push(document.getElementById(pfx+"-h"+i).classList.contains("done"));}
     else if(T==="isos"){e.holds=[];for(let i=0;i<6;i++)e.holds.push(document.getElementById(pfx+"-h"+i).classList.contains("done"));}
     else if(T==="timed"){e.sets=[];for(let i=0;i<spec.ns;i++)e.sets.push(document.getElementById(pfx+"-t"+i).classList.contains("done"));}
@@ -567,6 +678,51 @@ function collectExercises(day){
 }
 function val(id){const el=document.getElementById(id);return el?el.value:"";}
 
+
+// ─── TIMER (mirrored top + bottom) ───
+let tmStart=null,tmEnd=null,tmInterval=null;
+function tmBtns(){return [document.getElementById("tm-btn"),document.getElementById("tm-btn2")].filter(Boolean);}
+function tmLbls(){return [document.getElementById("tm-lbl"),document.getElementById("tm-lbl2")].filter(Boolean);}
+function tmDisps(){return [document.getElementById("tm-disp"),document.getElementById("tm-disp2")].filter(Boolean);}
+function setBtns(text,cls,bg,color){
+  tmBtns().forEach(b=>{b.textContent=text;b.className=cls;b.style.background=bg||"";b.style.color=color||"";});
+}
+function setLbls(t){tmLbls().forEach(l=>l.textContent=t);}
+function resetTimer(){
+  tmStart=null;tmEnd=null;
+  if(tmInterval){clearInterval(tmInterval);tmInterval=null;}
+  setBtns("Start","timer-btn timer-start");
+  tmDisps().forEach(d=>d.textContent="0:00");
+  setLbls("Workout timer");
+}
+function toggleTimer(){
+  if(!tmStart){
+    tmStart=Date.now();
+    setBtns("Stop","timer-btn timer-stop");
+    setLbls("Elapsed");
+    tmInterval=setInterval(updTimer,1000);updTimer();
+  }else if(!tmEnd){
+    tmEnd=Date.now();
+    if(tmInterval){clearInterval(tmInterval);tmInterval=null;}
+    setBtns("Done","timer-btn","var(--s2)","var(--dim)");
+    setLbls("Total time");
+    updTimer();
+  }
+}
+function updTimer(){
+  if(!tmStart)return;
+  const end=tmEnd||Date.now();
+  const sec=Math.floor((end-tmStart)/1000);
+  const m=Math.floor(sec/60),s=sec%60;
+  const txt=m+":"+String(s).padStart(2,"0");
+  tmDisps().forEach(d=>d.textContent=txt);
+}
+function getDurationMin(){
+  if(!tmStart)return null;
+  const end=tmEnd||Date.now();
+  return Math.round((end-tmStart)/60000*10)/10;
+}
+
 // ─── SAVE ───
 function saveSession(){
   const exercises=collectExercises(curDay);
@@ -574,6 +730,7 @@ function saveSession(){
     id:Date.now(),date:document.getElementById("m-date").value||tod(),week:curWeek,dayType:curDay,
     mainLift:gML(curDay,curWeek),bw:document.getElementById("m-bw").value,bwUnit,
     readiness:document.getElementById("m-ready").value,notes:document.getElementById("m-notes").value,
+    durationMin:getDurationMin(),
     exercises,ts:new Date().toISOString()
   };
   DB.sessions.unshift(sess);
@@ -593,7 +750,7 @@ function showHistory(){
     const ml2=gML(s.dayType,s.week);
     const exSummary=summarize(s);
     return `<div class="hc"><div class="ht"><div><div class="hd">${LABEL[s.dayType]}${ml2?" — "+ml2:""}</div><div class="hdt">${s.date}</div></div><div class="hr"><span class="hwk">Wk ${s.week}</span><button class="del" onclick="delSession(${s.id})">🗑</button></div></div>`+
-      `${(s.bw||s.readiness)?`<div class="hm">${s.bw?s.bw+" "+s.bwUnit:""}${s.readiness?" · Readiness "+s.readiness+"/10":""}</div>`:""}`+
+      `${(s.bw||s.readiness||s.durationMin)?`<div class="hm">${s.bw?s.bw+" "+s.bwUnit:""}${s.readiness?" · Readiness "+s.readiness+"/10":""}${s.durationMin?" · "+s.durationMin+" min":""}</div>`:""}`+
       `${s.notes?`<div class="hn">${s.notes}</div>`:""}`+
       `${exSummary?`<div class="hx-ex">${exSummary}</div>`:""}</div>`;
   }).join("");
@@ -640,6 +797,235 @@ function importJSON(ev){
     }catch(err){alert("Import failed: "+err.message);}
   };
   rd.readAsText(f);
+}
+
+
+// ─── ANALYTICS ───
+// Returns a numeric metric + label for an exercise instance, for charting.
+function exMetric(spec,e){
+  if(!e)return null;
+  const T=spec.type;
+  if(T==="pb"||T==="drop"){const f=parseInt(e.full);if(!f)return null;return {val:f,unit:"reps",band:bandStr(e.band),extra:e.partial?"+"+e.partial+"p":""};}
+  if(T==="rp"){const t=(parseInt(e.s1)||0)+(parseInt(e.s2)||0)+(parseInt(e.s3)||0);if(!t)return null;return {val:t,unit:"total reps",band:bandStr(e.band),extra:e.s3p?"+"+e.s3p+"p":""};}
+  if(T==="ss"&&e.sets){const tot=e.sets.reduce((a,z)=>a+(parseInt(z.full)||0),0);if(!tot)return null;return {val:tot,unit:"total reps",band:bandStr(e.band),extra:""};}
+  if(T==="bilat"&&e.sets){const tot=e.sets.reduce((a,z)=>a+(parseInt(z.lf)||0)+(parseInt(z.rf)||0),0);if(!tot)return null;return {val:tot,unit:"total reps (L+R)",band:bandStr(e.band),extra:""};}
+  if(T==="bi2"&&e.sets){const tot=e.sets.reduce((a,z)=>a+(parseInt(z.l)||0)+(parseInt(z.r)||0),0);if(!tot)return null;return {val:tot,unit:"total reps (L+R)",band:bandStr(e.band),extra:""};}
+  if((T==="dyn"||T==="timed")&&e.sets){const d=e.sets.filter(Boolean).length;if(!d)return null;return {val:d,unit:"sets done",band:bandStr(e.band),extra:""};}
+  if((T==="isod"||T==="isos")&&e.holds){const d=e.holds.filter(Boolean).length;if(!d)return null;return {val:d,unit:"holds done",band:bandStr(e.band),extra:""};}
+  return null;
+}
+
+function showAnalytics(){
+  showScreen("analytics");
+  // populate day dropdown FIRST so renderChart has a valid day
+  const daySel=document.getElementById("a-day");
+  daySel.innerHTML=SEQ.map(d=>`<option value="${d}">${LABEL[d]}</option>`).join("");
+  if(DB.sessions.length)daySel.value=DB.sessions[0].dayType;
+  onDayChange();
+  setAMode("ex");
+}
+
+function onDayChange(){
+  const day=document.getElementById("a-day").value;
+  const exSel=document.getElementById("a-ex");
+  const plan=PLAN[day];
+  // exercise names; for dyn main lifts the name varies by week, use generic plan name or "Main Lift"
+  exSel.innerHTML=plan.map(spec=>{
+    const nm=spec.dyn?(day==="heavy-upper"?"Main Lift (Press)":"Main Lift (Squat/DL)"):spec.name;
+    return `<option value="${spec.id}">${nm}</option>`;
+  }).join("");
+  renderChart();
+}
+
+function renderChart(){
+  const day=document.getElementById("a-day").value;
+  const exId=parseInt(document.getElementById("a-ex").value);
+  const spec=PLAN[day].find(s=>s.id===exId);
+  // gather all sessions of this day, oldest->newest, that have data for this exercise
+  const rows=DB.sessions.filter(s=>s.dayType===day&&s.exercises&&s.exercises[exId])
+    .map(s=>({date:s.date,week:s.week,m:exMetric(spec,s.exercises[exId])}))
+    .filter(r=>r.m)
+    .reverse(); // oldest first
+
+  const metricEl=document.getElementById("a-metric");
+  const chartEl=document.getElementById("a-chart");
+  const tableEl=document.getElementById("a-table");
+
+  if(rows.length<1){
+    metricEl.innerHTML="";
+    chartEl.innerHTML='<div class="aempty">No logged data for this exercise yet.<br>Log a few sessions to see your progression.</div>';
+    tableEl.innerHTML="";
+    return;
+  }
+
+  const unit=rows[0].m.unit;
+  metricEl.innerHTML=`Tracking <b>${unit}</b> over time · ${rows.length} session${rows.length>1?"s":""}`;
+
+  chartEl.innerHTML=`<div class="achart-wrap">${svgChart(rows)}</div>`;
+
+  // trend badge: compare last vs first
+  let trendHtml="";
+  if(rows.length>=2){
+    const d=rows[rows.length-1].m.val-rows[0].m.val;
+    const cls=d>0?"up":d<0?"down":"flat";
+    const arrow=d>0?"▲":d<0?"▼":"—";
+    trendHtml=`<span class="atrend ${cls}">${arrow} ${d>0?"+":""}${d} since start</span>`;
+  }
+  tableEl.innerHTML=`<div style="margin-bottom:8px">${trendHtml}</div><table class="atable"><thead><tr><th>Date</th><th>Wk</th><th>${unit}</th><th>Band</th></tr></thead><tbody>`+
+    rows.slice().reverse().map(r=>`<tr><td>${r.date}</td><td>${r.week}</td><td class="v">${r.m.val}${r.m.extra?" "+r.m.extra:""}</td><td>${r.m.band||"—"}</td></tr>`).join("")+
+    `</tbody></table>`;
+}
+
+// minimal dependency-free SVG line chart
+function svgChart(rows){
+  const W=320,H=180,pad={l:34,r:14,t:14,b:30};
+  const iw=W-pad.l-pad.r,ih=H-pad.t-pad.b;
+  const vals=rows.map(r=>r.m.val);
+  let mn=Math.min(...vals),mx=Math.max(...vals);
+  if(mn===mx){mn=Math.max(0,mn-2);mx=mx+2;}
+  const n=rows.length;
+  const x=i=>pad.l+(n===1?iw/2:iw*i/(n-1));
+  const y=v=>pad.t+ih-((v-mn)/(mx-mn))*ih;
+  // gridlines (3)
+  let grid="";
+  for(let g=0;g<=2;g++){
+    const gv=mn+(mx-mn)*g/2;const gy=y(gv);
+    grid+=`<line x1="${pad.l}" y1="${gy}" x2="${W-pad.r}" y2="${gy}" stroke="#333" stroke-width="1"/>`;
+    grid+=`<text x="${pad.l-6}" y="${gy+4}" fill="#666" font-size="10" text-anchor="end" font-family="monospace">${Math.round(gv)}</text>`;
+  }
+  // line path
+  let path="";
+  rows.forEach((r,i)=>{path+=(i===0?"M":"L")+x(i).toFixed(1)+" "+y(r.m.val).toFixed(1)+" ";});
+  const line=n>1?`<path d="${path}" fill="none" stroke="#e8c84a" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`:"";
+  // points
+  let pts="";
+  rows.forEach((r,i)=>{pts+=`<circle cx="${x(i).toFixed(1)}" cy="${y(r.m.val).toFixed(1)}" r="4" fill="#e8c84a" stroke="#111" stroke-width="1.5"/>`;});
+  // x labels (first, mid, last to avoid crowding)
+  let xl="";
+  const idxs=n<=4?rows.map((_,i)=>i):[0,Math.floor((n-1)/2),n-1];
+  [...new Set(idxs)].forEach(i=>{
+    const lbl=rows[i].date.slice(5); // MM-DD
+    xl+=`<text x="${x(i).toFixed(1)}" y="${H-10}" fill="#888" font-size="9" text-anchor="middle">${lbl}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">${grid}${line}${pts}${xl}</svg>`;
+}
+
+
+// ─── ANALYTICS MODE SWITCH ───
+function setAMode(mode){
+  document.getElementById("am-ex").classList.toggle("on",mode==="ex");
+  document.getElementById("am-body").classList.toggle("on",mode==="body");
+  document.getElementById("a-ex-panel").style.display=mode==="ex"?"block":"none";
+  document.getElementById("a-body-panel").style.display=mode==="body"?"block":"none";
+  if(mode==="ex")renderChart();else renderBodyChart();
+}
+
+// ─── BODY & SESSION METRICS ───
+function renderBodyChart(){
+  const metric=document.getElementById("a-bmetric").value;
+  const metricEl=document.getElementById("a-metric");
+  const chartEl=document.getElementById("a-chart");
+  const tableEl=document.getElementById("a-table");
+
+  let unit,label,getVal;
+  if(metric==="bw"){unit="lbs";label="Bodyweight";getVal=s=>{if(!s.bw)return null;const v=parseFloat(s.bw);return s.bwUnit==="kg"?v*2.20462:v;};}
+  else if(metric==="duration"){unit="min";label="Workout duration";getVal=s=>s.durationMin||null;}
+  else{unit="/10";label="Readiness";getVal=s=>s.readiness?parseInt(s.readiness):null;}
+
+  const rows=DB.sessions
+    .map(s=>({date:s.date,week:s.week,dayType:s.dayType,v:getVal(s)}))
+    .filter(r=>r.v!=null)
+    .reverse();
+
+  if(rows.length<1){
+    metricEl.innerHTML="";
+    chartEl.innerHTML='<div class="aempty">No '+label.toLowerCase()+' data logged yet.</div>';
+    tableEl.innerHTML="";
+    return;
+  }
+
+  // map to the shape svgChart expects: {m:{val}}
+  const cr=rows.map(r=>({date:r.date,m:{val:metric==="bw"?Math.round(r.v*10)/10:r.v}}));
+  metricEl.innerHTML=`Tracking <b>${label} (${unit})</b> · ${rows.length} session${rows.length>1?"s":""}`;
+  chartEl.innerHTML=`<div class="achart-wrap">${svgChart(cr)}</div>`;
+
+  let trendHtml="";
+  if(rows.length>=2){
+    const d=Math.round((rows[rows.length-1].v-rows[0].v)*10)/10;
+    const cls=metric==="duration"?(d<0?"up":d>0?"down":"flat"):(d>0?"up":d<0?"down":"flat");
+    const arrow=d>0?"▲":d<0?"▼":"—";
+    trendHtml=`<span class="atrend ${cls}">${arrow} ${d>0?"+":""}${d} ${unit} since start</span>`;
+  }
+  tableEl.innerHTML=`<div style="margin-bottom:8px">${trendHtml}</div><table class="atable"><thead><tr><th>Date</th><th>Day</th><th>${label} (${unit})</th></tr></thead><tbody>`+
+    rows.slice().reverse().map(r=>`<tr><td>${r.date}</td><td>${LABEL[r.dayType]}</td><td class="v">${metric==="bw"?(Math.round(r.v*10)/10):r.v}</td></tr>`).join("")+
+    `</tbody></table>`;
+}
+
+// ─── CONSISTENCY CALENDAR ───
+function showCalendar(){
+  showScreen("calendar");
+  renderCalendar();
+}
+function renderCalendar(){
+  const sessions=DB.sessions;
+  // count sessions per date
+  const byDate={};
+  sessions.forEach(s=>{byDate[s.date]=(byDate[s.date]||0)+1;});
+
+  // stats
+  const total=sessions.length;
+  const uniqueDays=Object.keys(byDate).length;
+  // current streak: consecutive days (counting back from today) with >=1 session, allowing rest days?
+  // simpler + honest: weeks active in last 4 weeks, and current "logging streak" in weeks
+  const streak=computeWeekStreak(byDate);
+
+  document.getElementById("cal-stats").innerHTML=
+    `<div class="calstat"><div class="num">${total}</div><div class="lab">Total sessions</div></div>`+
+    `<div class="calstat"><div class="num">${uniqueDays}</div><div class="lab">Days trained</div></div>`+
+    `<div class="calstat"><div class="num">${streak}</div><div class="lab">Wk streak</div></div>`;
+
+  // render last 3 months (most recent first)
+  const grid=document.getElementById("cal-grid");
+  if(!total){grid.innerHTML='<div class="aempty">No sessions logged yet. Your training calendar fills in as you go.</div>';return;}
+
+  const now=new Date();
+  let out="";
+  for(let mAgo=0;mAgo<3;mAgo++){
+    const d=new Date(now.getFullYear(),now.getMonth()-mAgo,1);
+    out+=monthHTML(d,byDate);
+  }
+  grid.innerHTML=out;
+}
+function monthHTML(firstOfMonth,byDate){
+  const y=firstOfMonth.getFullYear(),m=firstOfMonth.getMonth();
+  const monthName=firstOfMonth.toLocaleString("en-US",{month:"long",year:"numeric"});
+  const firstDow=new Date(y,m,1).getDay(); // 0=Sun
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  let cells="";
+  for(let i=0;i<firstDow;i++)cells+=`<div class="calcell empty"></div>`;
+  for(let day=1;day<=daysInMonth;day++){
+    const ds=`${y}-${String(m+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+    const c=byDate[ds]||0;
+    const cls=c>=2?"has2":c===1?"has1":"";
+    cells+=`<div class="calcell ${cls}">${day}</div>`;
+  }
+  return `<div class="calmonth"><div class="calmonth-t">${monthName}</div>`+
+    `<div class="caldow"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>`+
+    `<div class="calcells">${cells}</div></div>`;
+}
+function computeWeekStreak(byDate){
+  // count consecutive ISO-ish weeks (Sun-anchored) ending this week that have >=1 session
+  if(!Object.keys(byDate).length)return 0;
+  const weekKey=d=>{const x=new Date(d);const day=x.getDay();x.setDate(x.getDate()-day);return x.toISOString().split("T")[0];};
+  const weeks=new Set(Object.keys(byDate).map(weekKey));
+  let streak=0;
+  const cur=new Date();const day=cur.getDay();cur.setDate(cur.getDate()-day); // start of this week
+  while(true){
+    const k=cur.toISOString().split("T")[0];
+    if(weeks.has(k)){streak++;cur.setDate(cur.getDate()-7);}
+    else break;
+  }
+  return streak;
 }
 
 // ─── NAV ───
